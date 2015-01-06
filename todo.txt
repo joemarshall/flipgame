@@ -1,0 +1,62 @@
+Game mechanics:
+---------------
+Moves are:
+head,feet, front,back,left,right (on the floor)
+tap tap? (tap the device twice)
+consecutive moves are always different
+balance of moves should be roughly the same (perhaps modulated by time differences)
+
+
+each move = 
+  1)name of move
+  2)tick tick tick, tickticktick, buzz countdown (or 5,4,3,2,1?)
+  3)BOOM (if you miss it)
+  or 
+  3)PING (if you hit it)
+  
+Each level = faster speed
+LEVEL BLAH
+GET READY
+...
+10 moves or 30 seconds? 
+
+Every 5 levels = rest time
+TAKE A REST
+20 seconds
+LEVEL blah
+Get Ready
+...
+
+score = level * (time left for move / total time for move)
+e.g. if you have 10 seconds per move in level 5, if you do it in 1 second, you get 9/10 * 5 = .9*5 = .45
+*1000 and integer for nice display
+
+Changeables:
+------------
+Choice of:
+ starting level speed
+ time per level
+ change in speed per level (as a percentage? or as a raw number?)
+
+time multipliers for some moves (e.g. head down)?
+time multiplier for transition out of a move (e.g. head down -> head up?)
+moves to not include (e.g. lying on back if that's where the phone is, head down if people aren't in a situation where it is possible)
+grid for each move, with buttons for:
+  1)not included
+  2)1,1.5,2x time multiplier
+
+pocket calibration (get base rotation matrix to correct for angle of pockets)
+   - maybe do this in first few seconds of starting the game (say 'stand up straight and get ready')
+
+Todo:
+------
+preferences class
+game engine - 
+  1)Core states = in game, front screen, prefs screen, debug screen (current frontscreen)
+  2)In game state (run a game master thread for this) = 
+      level, list of moves for current level, position in movelist, time in move (set after it has said 'name of move')      
+      
+log sensor data to file each time a game is played - including 'gamestate sensors, done each time there is a new level, or a move is hit)
+      
+sound engine - play bg music, play countdowns, do sounds
+screen to set preferences (lower priority for now)
