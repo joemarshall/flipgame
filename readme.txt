@@ -1,0 +1,1 @@
+Runs on any android phone which has rotation_vector sensor support, which requires a gyroscope (e.g. Nexus 4, Galaxy S3/4)
