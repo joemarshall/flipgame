@@ -735,10 +735,14 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
             if(m_FileSaver.logFileName() != null)
             {
                 m_Recording = true;
-                m_RecordButton.setColorBackground(0xffff0000);
+                if(m_RecordButton!=null)
+                {
+                    m_RecordButton.setColorBackground(0xffff0000);
+                }
             }
         }
     }
+
 
     public void stopRecording()
     {
