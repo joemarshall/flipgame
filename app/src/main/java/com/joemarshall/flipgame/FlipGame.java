@@ -24,7 +24,6 @@ import controlP5.Slider;
 import processing.core.PApplet;
 import processing.core.PFont;
 
-//@TODO: Log game actions as well as sensor actions
 
 public class FlipGame extends PApplet implements OnProgressChangedListener
 {
@@ -311,6 +310,7 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
         logGameEvent(0,m_Prefs.m_MovesPerLevel,m_Prefs.m_Level1TimePerMove,m_Prefs.m_TimeMultiplyPerLevel);
         try
         {
+            startSilence();
             m_GameDebugText = "Set volume to full\nLock the phone\nPut it away";
             int gameScore = 0;
             long startTime = System.currentTimeMillis();
@@ -741,7 +741,7 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
             if((rollOri == g.m_RollOri || -5 == g.m_RollOri)
                     && pitchOri == g.m_PitchOri)
             {
-                if(m_SensedMove!=g)
+                if(m_SensedMove != g)
                 {
                     logGameEvent(10,g.m_ID,0,0);
                 }
@@ -900,6 +900,14 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
     public void onProgressChanged(int track, double currentPercentage,
                                   long position)
     {
+    }
+
+    public void startSilence() throws InterruptedException
+    {
+        m_Music.setVolume(0f, 0f);
+        m_Music.setRate(1.0f);
+        m_Music.seekTo(0);
+        m_Music.start();
     }
 
     public void startMusic() throws InterruptedException
