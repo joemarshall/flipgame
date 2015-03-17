@@ -6,6 +6,7 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.view.KeyEvent;
@@ -22,6 +23,8 @@ import controlP5.ControlP5;
 import controlP5.Slider;
 import processing.core.PApplet;
 import processing.core.PFont;
+
+//@TODO: Log game actions as well as sensor actions
 
 public class FlipGame extends PApplet implements OnProgressChangedListener
 {
@@ -305,6 +308,7 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
     {
         m_InGameThread = Thread.currentThread();
         m_InGame = true;
+        logGameEvent(0,m_Prefs.m_MovesPerLevel,m_Prefs.m_Level1TimePerMove,m_Prefs.m_TimeMultiplyPerLevel);
         try
         {
             m_GameDebugText = "Set volume to full\nLock the phone\nPut it away";
@@ -324,6 +328,9 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
             GameMovement lastMove = m_SensedMove;
             m_Music.setRate((float) 0.75 * m_Prefs.m_Level1TimePerMove
                                     / (float) timePerMove);
+            logGameEvent(1, level, timePerMove, movesLeft);
+
+
             while(alive)
             {
                 if(movesLeft <= 0)
@@ -332,6 +339,7 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
                     level += 1;
                     timePerMove *= m_Prefs.m_TimeMultiplyPerLevel;
                     movesLeft = m_Prefs.m_MovesPerLevel;
+                    logGameEvent(1,level,timePerMove,movesLeft);
                     fadeMusic();
                     // say level BLAH
                     m_TTS.say("Level complete, rest");
@@ -372,6 +380,7 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
                 // countdown
                 long targetTime = System.currentTimeMillis() + moveTime;
                 boolean hitMove = false;
+                logGameEvent(2,thisMove.m_ID,moveTime,0);
 
                 long buzzStep = moveTime / 10;
                 long nextBuzz = 0;
@@ -406,6 +415,7 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
                         hitMove = true;
                         gameScore +=
                                 (int) (1000.0f * (float) (targetTime - curTime) / (float) moveTime);
+                        logGameEvent(3,thisMove.m_ID,targetTime - curTime,gameScore);
                     }
                     pauseGame(10);
                     curTime = System.currentTimeMillis();
@@ -418,6 +428,7 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
                     //				m_TTS.waitForSpeech();
                 } else
                 {
+                    logGameEvent(4,thisMove.m_ID,0,gameScore);
                     m_SoundFX.stopSounds();
                     m_TTS.say("[bang], GAME OVER. Score " + gameScore);
                     fadeMusic();
@@ -591,9 +602,36 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
 
     }
 
+    long m_LastTimestamp=0L;
+
+    public void logGameEvent(final int eventType,final float arg1,final float arg2,final float arg3)
+    {
+        if(Looper.myLooper() != Looper.getMainLooper()) {
+            // Current Thread is not Main Thread, do all logging on main thread
+            runOnUiThread(new Runnable(){
+                @Override
+                public void run()
+                {
+                    logGameEvent(eventType,arg1,arg2,arg3);
+                }
+            });
+        }else
+        {
+            if(m_Recording)
+            {
+                m_FileSaver.writeSensorData(10000 + eventType, arg1, arg2, arg3, m_LastTimestamp);
+            }
+            if(m_DataSender.isConnected())
+            {
+                m_DataSender.sendSensorData(10000 + eventType, arg1, arg2, arg3, m_LastTimestamp);
+            }
+        }
+    }
+
     public void onSensorEvent(int sensorType, float x, float y, float z,
                               long timestamp, int accuracy)
     {
+        m_LastTimestamp=timestamp;
         if(m_Recording)
         {
             m_FileSaver.writeSensorData(sensorType, x, y, z, timestamp);
@@ -703,6 +741,10 @@ public class FlipGame extends PApplet implements OnProgressChangedListener
             if((rollOri == g.m_RollOri || -5 == g.m_RollOri)
                     && pitchOri == g.m_PitchOri)
             {
+                if(m_SensedMove!=g)
+                {
+                    logGameEvent(10,g.m_ID,0,0);
+                }
                 m_SensedMove = g;
             }
         }
